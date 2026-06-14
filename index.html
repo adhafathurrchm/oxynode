@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - OxyNode Portal</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="./assets/css/custom.css">
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gradient-to-tr from-slate-900 via-slate-800 to-sky-900 min-h-screen flex items-center justify-center p-4">
+
+  <div class="w-full max-w-md animate-slide-in">
+    <!-- Brand Logo and Header -->
+    <div class="text-center mb-8">
+      <div class="inline-flex h-16 w-16 rounded-2xl bg-sky-500 items-center justify-center text-white shadow-xl shadow-sky-500/20 mb-3 pulse-glow">
+        <i data-lucide="activity" class="h-10 w-10 heart-pulse"></i>
+      </div>
+      <h1 class="text-3xl font-bold text-white tracking-tight">OxyNode</h1>
+      <p class="text-sm text-slate-300 mt-1.5">Sistem Monitoring SpO2 & Nadi Terintegrasi AI</p>
+    </div>
+
+    <!-- Login Card -->
+    <div class="glass-panel rounded-3xl shadow-2xl p-8 border border-white/10 bg-white/10 backdrop-blur-md">
+      <div class="mb-6">
+        <h2 class="text-xl font-semibold text-white">Selamat Datang Kembali</h2>
+        <p class="text-xs text-slate-300 mt-1">Silakan masuk menggunakan akun terdaftar Anda</p>
+      </div>
+
+      <form id="login-form" class="space-y-4">
+        <!-- Email Input -->
+        <div>
+          <label for="email" class="block text-xs font-semibold text-slate-200 mb-1.5 uppercase tracking-wider">Alamat Email</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
+              <i data-lucide="mail" class="h-4 w-4"></i>
+            </span>
+            <input type="email" id="email" required placeholder="nama@email.com" 
+              class="w-full bg-white/5 border border-white/10 text-white rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none transition duration-150 placeholder-slate-400" />
+          </div>
+        </div>
+
+        <!-- Password Input -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label for="password" class="block text-xs font-semibold text-slate-200 uppercase tracking-wider">Kata Sandi</label>
+            <a href="#" class="text-xs text-sky-400 hover:text-sky-300 font-medium transition">Lupa sandi?</a>
+          </div>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
+              <i data-lucide="lock" class="h-4 w-4"></i>
+            </span>
+            <input type="password" id="password" required placeholder="••••••••" 
+              class="w-full bg-white/5 border border-white/10 text-white rounded-xl pl-10 pr-10 py-3 text-sm focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none transition duration-150 placeholder-slate-400" />
+            <button type="button" id="toggle-password" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-200 transition">
+              <i data-lucide="eye" id="eye-icon" class="h-4 w-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Remember Me Checkbox -->
+        <div class="flex items-center">
+          <input type="checkbox" id="remember-me" class="h-4 w-4 text-sky-600 focus:ring-sky-500 border-white/10 rounded bg-white/5" checked>
+          <label for="remember-me" class="ml-2 block text-xs text-slate-200 font-medium">Ingat saya di perangkat ini</label>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" id="submit-btn" 
+          class="w-full bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-400 hover:to-sky-500 text-white rounded-xl py-3 text-sm font-semibold shadow-lg shadow-sky-500/20 hover:shadow-sky-500/30 transition duration-150 transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2">
+          <span>Masuk ke Portal</span>
+          <i data-lucide="arrow-right" class="h-4 w-4"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Central JS logic -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./assets/js/config.js"></script>
+  <script src="./assets/js/common.js"></script>
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // Toggle Password Visibility
+    const togglePasswordBtn = document.getElementById('toggle-password');
+    const passwordInput = document.getElementById('password');
+    const eyeIcon = document.getElementById('eye-icon');
+
+    togglePasswordBtn.addEventListener('click', () => {
+      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordInput.setAttribute('type', type);
+      
+      // Update icon
+      if (type === 'text') {
+        eyeIcon.setAttribute('data-lucide', 'eye-off');
+      } else {
+        eyeIcon.setAttribute('data-lucide', 'eye');
+      }
+      lucide.createIcons();
+    });
+
+    // Form Submit Handler
+    const loginForm = document.getElementById('login-form');
+    const submitBtn = document.getElementById('submit-btn');
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      // Loading state
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `
+        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>Memverifikasi...</span>
+      `;
+
+      try {
+        const result = await login(email, password);
+        
+        if (result.success) {
+          showToast(`Selamat datang, ${result.user.full_name}!`, 'success');
+          
+          setTimeout(() => {
+            if (result.user.role === 'admin') {
+              window.location.href = './admin/dashboard.html';
+            } else {
+              window.location.href = './patient/dashboard.html';
+            }
+          }, 800);
+        } else {
+          showToast(result.message, 'error');
+          // Reset button state
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = `
+            <span>Masuk ke Portal</span>
+            <i data-lucide="arrow-right" class="h-4 w-4"></i>
+          `;
+          lucide.createIcons();
+        }
+      } catch (err) {
+        showToast("Error saat login: " + err.message, 'error');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `
+          <span>Masuk ke Portal</span>
+          <i data-lucide="arrow-right" class="h-4 w-4"></i>
+        `;
+        lucide.createIcons();
+      }
+    });
+  </script>
+</body>
+</html>

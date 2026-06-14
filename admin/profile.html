@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profil Pasien - OxyNode</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="../assets/css/custom.css">
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+  <div class="space-y-6">
+
+    <!-- Patient Selection Selector -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+      <div class="flex items-center gap-3">
+        <div class="h-9 w-9 rounded-lg bg-sky-50 text-sky-500 flex items-center justify-center flex-shrink-0">
+          <i data-lucide="folder-search" class="h-5 w-5"></i>
+        </div>
+        <div class="flex-grow">
+          <label for="select-patient-profile" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Pilih Rekam Medis Pasien</label>
+          <select id="select-patient-profile" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none w-full bg-slate-50">
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Grid Content -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Patient Stats Summary Card -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-6 flex flex-col justify-between h-fit">
+        <div>
+          <div class="flex items-center gap-3 mb-4">
+            <div id="patient-avatar" class="h-12 w-12 rounded-full bg-sky-500 text-white font-bold text-lg flex items-center justify-center shadow-md shadow-sky-100">
+              BS
+            </div>
+            <div>
+              <h3 id="stat-patient-name" class="font-bold text-slate-900 text-base">-</h3>
+              <p id="stat-patient-role" class="text-xs text-slate-500">Pasien Terdaftar</p>
+            </div>
+          </div>
+
+          <div class="border-t border-b border-slate-100 py-4 space-y-3 text-xs">
+            <div class="flex items-center justify-between text-slate-600">
+              <span>Total Pengukuran:</span>
+              <span id="stat-total-measure" class="font-bold text-slate-900">- kali</span>
+            </div>
+            <div class="flex items-center justify-between text-slate-600">
+              <span>Rerata SpO2:</span>
+              <span id="stat-avg-spo2" class="font-bold text-sky-600">- %</span>
+            </div>
+            <div class="flex items-center justify-between text-slate-600">
+              <span>Rerata Detak Nadi:</span>
+              <span id="stat-avg-hr" class="font-bold text-red-600">- bpm</span>
+            </div>
+            <div class="flex items-center justify-between text-slate-600">
+              <span>Body Mass Index (BMI):</span>
+              <span id="stat-bmi" class="font-bold text-slate-800">-</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 border border-slate-150 rounded-xl p-4 text-[11px] text-slate-600 space-y-1 mt-4">
+          <span class="font-bold text-slate-800 block">Keterangan Klasifikasi BMI:</span>
+          <p>• &lt; 18.5: Berat Badan Kurang</p>
+          <p>• 18.5 - 24.9: Berat Badan Normal</p>
+          <p>• 25.0 - 29.9: Kelebihan Berat Badan</p>
+          <p>• &ge; 30.0: Obesitas</p>
+        </div>
+      </div>
+
+      <!-- Profile Form Card -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm lg:col-span-2">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-5">
+          <div class="flex items-center gap-2 text-slate-800">
+            <i data-lucide="file-text" class="h-5 w-5 text-sky-500"></i>
+            <h3 class="font-bold text-slate-900 text-base">Detail Informasi Rekam Medis</h3>
+          </div>
+          <span class="text-[10px] text-sky-500 font-semibold bg-sky-50 border border-sky-100 rounded-full px-2.5 py-0.5">Admin Edit Mode</span>
+        </div>
+
+        <form id="profile-edit-form" class="space-y-4 text-xs">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Full Name -->
+            <div class="space-y-1">
+              <label for="prof-name" class="text-xs font-semibold text-slate-600">Nama Lengkap *</label>
+              <input type="text" id="prof-name" required class="border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-sky-500 outline-none w-full bg-slate-50">
+            </div>
+
+            <!-- Email -->
+            <div class="space-y-1">
+              <label for="prof-email" class="text-xs font-semibold text-slate-600">Email Portal *</label>
+              <input type="email" id="prof-email" required class="border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-sky-500 outline-none w-full bg-slate-50">
+            </div>
+
+            <!-- Phone WhatsApp -->
+            <div class="space-y-1">
+              <label for="prof-phone" class="text-xs font-semibold text-slate-600">Nomor WhatsApp *</label>
+              <input type="text" id="prof-phone" required class="border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-sky-500 outline-none w-full bg-slate-50">
+            </div>
+
+            <!-- Age -->
+            <div class="space-y-1">
+              <label for="prof-age" class="text-xs font-semibold text-slate-600">Umur (Tahun) *</label>
+              <input type="number" id="prof-age" required class="border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-sky-500 outline-none w-full bg-slate-50">
+            </div>
+
+            <!-- Gender -->
+            <div class="space-y-1">
+              <label for="prof-gender" class="text-xs font-semibold text-slate-600">Jenis Kelamin *</label>
+              <select id="prof-gender" required class="border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-sky-500 outline-none w-full bg-slate-50">
+                <option value="Laki-laki">Laki-laki</option>
+                <option value="Perempuan">Perempuan</option>
+              </select>
+            </div>
+
+
+
+            <!-- Weight -->
+            <div class="space-y-1">
+              <label for="prof-weight" class="text-xs font-semibold text-slate-600">Berat Badan (Kg)</label>
+              <input type="number" id="prof-weight" step="0.1" class="border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-sky-500 outline-none w-full bg-slate-50">
+            </div>
+
+            <!-- Height -->
+            <div class="space-y-1">
+              <label for="prof-height" class="text-xs font-semibold text-slate-600">Tinggi Badan (Cm)</label>
+              <input type="number" id="prof-height" class="border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-sky-500 outline-none w-full bg-slate-50">
+            </div>
+
+            <!-- Medical History -->
+            <div class="space-y-1 sm:col-span-2">
+              <label for="prof-history" class="text-xs font-semibold text-slate-600">Riwayat Kondisi Medis</label>
+              <textarea id="prof-history" rows="3" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-sky-500 outline-none bg-slate-50"></textarea>
+            </div>
+
+            <!-- Notes -->
+            <div class="space-y-1 sm:col-span-2">
+              <label for="prof-notes" class="text-xs font-semibold text-slate-600">Catatan Klinis Tambahan</label>
+              <textarea id="prof-notes" rows="2" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-sky-500 outline-none bg-slate-50"></textarea>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex items-center justify-end pt-4 border-t border-slate-100 mt-6">
+            <button type="submit" class="bg-sky-500 hover:bg-sky-600 text-white rounded-lg px-5 py-2 text-xs font-semibold shadow-sm transition duration-150 flex items-center justify-center gap-1.5">
+              <i data-lucide="save" class="h-4 w-4"></i>
+              <span>Simpan Perubahan</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Central utilities -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/config.js"></script>
+  <script src="../assets/js/common.js"></script>
+  <script>
+    // State
+    let activePatientId = "";
+
+    // Elements
+    const patientSelect = document.getElementById('select-patient-profile');
+    const profileForm = document.getElementById('profile-edit-form');
+
+    // 1. Initial Load
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadPatientsDropdown();
+      
+      // Load first patient or active session patient
+      const session = await db.getActiveSession();
+      if (session && session.active_patient_id) {
+        activePatientId = session.active_patient_id;
+        patientSelect.value = activePatientId;
+      } else {
+        activePatientId = patientSelect.value;
+      }
+      
+      await loadPatientDetails();
+    });
+
+    // Load Patient Dropdown
+    async function loadPatientsDropdown() {
+      try {
+        const users = await db.getUsers();
+        const patients = users.filter(u => u.role === 'patient');
+        patientSelect.innerHTML = patients.map(p => `
+          <option value="${p.id}">${p.full_name || '-'} (${p.age} thn - ${p.gender})</option>
+        `).join('');
+      } catch (err) {
+        console.error("Gagal memuat daftar pasien:", err);
+        showToast("Gagal memuat daftar pasien: " + err.message, "error");
+      }
+    }
+
+    // Dropdown change listener
+    patientSelect.addEventListener('change', async () => {
+      activePatientId = patientSelect.value;
+      await loadPatientDetails();
+    });
+
+    // 2. Load Patient Data to UI
+    async function loadPatientDetails() {
+      try {
+        const users = await db.getUsers();
+        const patient = users.find(u => u.id === activePatientId);
+        if (!patient) return;
+
+        // Update Card avatar
+        const avatar = document.getElementById('patient-avatar');
+        const initials = patient.full_name ? patient.full_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'P';
+        avatar.innerText = initials;
+        document.getElementById('stat-patient-name').innerText = patient.full_name || '-';
+
+        // Fill Inputs
+        document.getElementById('prof-name').value = patient.full_name || '';
+        document.getElementById('prof-email').value = patient.email;
+        document.getElementById('prof-phone').value = patient.whatsapp_number || '';
+        document.getElementById('prof-age').value = patient.age || '';
+        document.getElementById('prof-gender').value = patient.gender || 'Laki-laki';
+
+        document.getElementById('prof-weight').value = patient.weight_kg || '';
+        document.getElementById('prof-height').value = patient.height_cm || '';
+        document.getElementById('prof-history').value = patient.medical_history || '';
+        document.getElementById('prof-notes').value = patient.notes || '';
+
+        // Calculate stats summary
+        const measurementsAll = await db.getMeasurements();
+        const measurements = measurementsAll.filter(m => m.patient_id === activePatientId);
+        const totalMeasures = measurements.length;
+        document.getElementById('stat-total-measure').innerText = `${totalMeasures} kali`;
+
+        if (totalMeasures > 0) {
+          const avgSpo2 = Math.round(measurements.reduce((sum, m) => sum + m.spo2, 0) / totalMeasures);
+          const avgHr = Math.round(measurements.reduce((sum, m) => sum + m.heart_rate, 0) / totalMeasures);
+          
+          document.getElementById('stat-avg-spo2').innerText = `${avgSpo2} %`;
+          document.getElementById('stat-avg-hr').innerText = `${avgHr} bpm`;
+        } else {
+          document.getElementById('stat-avg-spo2').innerText = `- %`;
+          document.getElementById('stat-avg-hr').innerText = `- bpm`;
+        }
+
+        // Calculate BMI
+        if (patient.weight_kg && patient.height_cm) {
+          const heightMeters = patient.height_cm / 100;
+          const bmi = (patient.weight_kg / (heightMeters * heightMeters)).toFixed(1);
+          let classification = '';
+          let colorClass = 'text-slate-800';
+
+          if (bmi < 18.5) {
+            classification = ' (Berat Kurang)';
+            colorClass = 'text-amber-500';
+          } else if (bmi >= 18.5 && bmi <= 24.9) {
+            classification = ' (Normal)';
+            colorClass = 'text-emerald-600';
+          } else if (bmi >= 25 && bmi <= 29.9) {
+            classification = ' (Kelebihan)';
+            colorClass = 'text-amber-500';
+          } else {
+            classification = ' (Obesitas)';
+            colorClass = 'text-red-600';
+          }
+          
+          const bmiElement = document.getElementById('stat-bmi');
+          bmiElement.innerText = bmi + classification;
+          bmiElement.className = `font-bold ${colorClass}`;
+        } else {
+          document.getElementById('stat-bmi').innerText = '-';
+          document.getElementById('stat-bmi').className = 'font-bold text-slate-800';
+        }
+      } catch (err) {
+        console.error("Gagal memuat detail pasien:", err);
+        showToast("Gagal memuat detail pasien: " + err.message, "error");
+      }
+    }
+
+    // 3. Save Profile Changes
+    profileForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById('prof-name').value.trim();
+      const email = document.getElementById('prof-email').value.trim();
+      const phone = document.getElementById('prof-phone').value.trim().replace('+', '');
+      const age = parseInt(document.getElementById('prof-age').value);
+      const gender = document.getElementById('prof-gender').value;
+      const weight = document.getElementById('prof-weight').value ? parseFloat(document.getElementById('prof-weight').value) : null;
+      const height = document.getElementById('prof-height').value ? parseInt(document.getElementById('prof-height').value) : null;
+      const history = document.getElementById('prof-history').value.trim();
+      const notes = document.getElementById('prof-notes').value.trim();
+
+      try {
+        const users = await db.getUsers();
+
+        // Email validation
+        const emailExists = users.some(u => u.email && u.email.toLowerCase() === email.toLowerCase() && u.id !== activePatientId);
+        if (emailExists) {
+          showToast("Email sudah terdaftar oleh pengguna lain!", "error");
+          return;
+        }
+
+        // Update patient profile
+        await db.updateUser(activePatientId, {
+          full_name: name,
+          email: email,
+          whatsapp_number: phone,
+          age: age,
+          gender: gender,
+          weight_kg: weight,
+          height_cm: height,
+          medical_history: history,
+          notes: notes
+        });
+        showToast("Data profil pasien berhasil diperbarui!", "success");
+        
+        // Update dropdown option text in select
+        await loadPatientsDropdown();
+        patientSelect.value = activePatientId;
+
+        await loadPatientDetails();
+      } catch (err) {
+        console.error("Gagal memperbarui profil pasien:", err);
+        showToast("Gagal memperbarui profil pasien: " + err.message, "error");
+      }
+    });
+  </script>
+</body>
+</html>

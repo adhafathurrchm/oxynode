@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kelola Pasien - OxyNode</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="../assets/css/custom.css">
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="bg-slate-50 min-h-screen">
+
+  <div class="space-y-6">
+
+    <!-- Header Action Panel -->
+    <div class="flex items-center justify-between gap-4 flex-wrap">
+      <div>
+        <h3 class="font-bold text-slate-900 text-lg">Kelola Akun Pasien</h3>
+        <p class="text-xs text-slate-500 mt-0.5">Tambah, edit, dan hapus data akun pasien terdaftar</p>
+      </div>
+      <button id="btn-add-patient"
+        class="bg-sky-500 hover:bg-sky-600 text-white rounded-xl px-4 py-2.5 text-xs font-semibold shadow-sm shadow-sky-200 transition duration-150 flex items-center justify-center gap-1.5">
+        <i data-lucide="user-plus" class="h-4.5 w-4.5"></i>
+        <span>Tambah Pasien Baru</span>
+      </button>
+    </div>
+
+    <!-- Patients List Table Card -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr
+              class="bg-slate-50/70 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+              <th class="py-3 px-5">Nama Lengkap</th>
+              <th class="py-3 px-5">Email</th>
+              <th class="py-3 px-5 text-center">Umur</th>
+              <th class="py-3 px-5">No. WhatsApp</th>
+              <th class="py-3 px-5">Riwayat Medis</th>
+              <th class="py-3 px-5 text-right">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="patients-table-body" class="divide-y divide-slate-150 text-xs text-slate-700">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty State -->
+      <div id="table-empty-state" class="hidden py-12 text-center text-slate-400 space-y-2">
+        <i data-lucide="users" class="h-10 w-10 mx-auto text-slate-300"></i>
+        <p class="font-semibold text-sm">Tidak ada pasien terdaftar</p>
+        <p class="text-xs">Klik tombol "Tambah Pasien Baru" di atas untuk membuat akun pertama.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CRUD Patient Modal -->
+  <div id="patient-modal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm hidden animate-fade-in">
+    <div
+      class="bg-white rounded-2xl shadow-xl max-w-2xl w-full border border-slate-100 transform scale-95 opacity-0 transition duration-300 overflow-hidden">
+
+      <!-- Modal Header -->
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <div class="flex items-center gap-2 text-sky-600">
+          <i data-lucide="user" class="h-5 w-5"></i>
+          <h3 id="modal-title" class="font-bold text-slate-900 text-base">Tambah Pasien Baru</h3>
+        </div>
+        <button id="btn-close-modal" class="text-slate-400 hover:text-slate-600 transition">
+          <i data-lucide="x" class="h-5 w-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body Form -->
+      <form id="patient-form" class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+        <input type="hidden" id="patient-id" value="">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Full Name -->
+          <div class="space-y-1">
+            <label for="p-name" class="text-xs font-semibold text-slate-600">Nama Lengkap *</label>
+            <input type="text" id="p-name" required placeholder="Contoh: Adha Dwi Fathur"
+              class="border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none w-full bg-slate-50">
+          </div>
+
+          <!-- Email -->
+          <div class="space-y-1">
+            <label for="p-email" class="text-xs font-semibold text-slate-600">Email Login *</label>
+            <input type="email" id="p-email" required placeholder="fathur@gmail.com"
+              class="border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none w-full bg-slate-50">
+          </div>
+
+          <!-- Password (Only visible/required for adding new) -->
+          <div id="password-container" class="space-y-1">
+            <label for="p-password" class="text-xs font-semibold text-slate-600">Kata Sandi Default *</label>
+            <input type="password" id="p-password" placeholder="Sandi minimal 6 karakter"
+              class="border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none w-full bg-slate-50">
+          </div>
+
+          <!-- Phone WhatsApp -->
+          <div class="space-y-1">
+            <label for="p-phone" class="text-xs font-semibold text-slate-600">Nomor WhatsApp (format: 628xxx) *</label>
+            <input type="text" id="p-phone" required placeholder="62812345678"
+              class="border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none w-full bg-slate-50">
+          </div>
+
+          <!-- Age -->
+          <div class="space-y-1">
+            <label for="p-age" class="text-xs font-semibold text-slate-600">Umur (Tahun) *</label>
+            <input type="number" id="p-age" required min="1" max="120" placeholder="20"
+              class="border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none w-full bg-slate-50">
+          </div>
+
+          <!-- Gender -->
+          <div class="space-y-1">
+            <label for="p-gender" class="text-xs font-semibold text-slate-600">Jenis Kelamin *</label>
+            <select id="p-gender" required
+              class="border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none w-full bg-slate-50">
+              <option value="Laki-laki">Laki-laki</option>
+              <option value="Perempuan">Perempuan</option>
+            </select>
+          </div>
+
+          <!-- Weight -->
+          <div class="space-y-1">
+            <label for="p-weight" class="text-xs font-semibold text-slate-600">Berat Badan (Kg)</label>
+            <input type="number" id="p-weight" step="0.1" placeholder="60"
+              class="border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none w-full bg-slate-50">
+          </div>
+
+          <!-- Height -->
+          <div class="space-y-1">
+            <label for="p-height" class="text-xs font-semibold text-slate-600">Tinggi Badan (Cm)</label>
+            <input type="number" id="p-height" placeholder="165"
+              class="border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none w-full bg-slate-50">
+          </div>
+
+
+
+          <!-- Medical History -->
+          <div class="space-y-1 md:col-span-2">
+            <label for="p-history" class="text-xs font-semibold text-slate-600">Riwayat Kondisi Medis</label>
+            <textarea id="p-history" rows="3"
+              placeholder="Tuliskan riwayat kesehatan penting (contoh: Hipertensi, Asma, Diabetes...)"
+              class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-sky-500 outline-none bg-slate-50"></textarea>
+          </div>
+
+          <!-- Notes -->
+          <div class="space-y-1 md:col-span-2">
+            <label for="p-notes" class="text-xs font-semibold text-slate-600">Catatan Klinis Tambahan</label>
+            <textarea id="p-notes" rows="2" placeholder="Catatan asuhan atau pemantauan khusus pasien..."
+              class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-sky-500 outline-none bg-slate-50"></textarea>
+          </div>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="flex items-center justify-end gap-3 border-t border-slate-100 pt-4 mt-6">
+          <button type="button" id="btn-cancel"
+            class="border border-slate-200 text-slate-700 hover:bg-slate-50 px-4 py-2 rounded-lg text-xs font-semibold transition">
+            Batal
+          </button>
+          <button type="submit"
+            class="bg-sky-500 hover:bg-sky-600 text-white px-5 py-2 rounded-lg text-xs font-semibold shadow-sm transition">
+            Simpan Data
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Central utilities -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/config.js"></script>
+  <script src="../assets/js/common.js"></script>
+  <script>
+    // State
+    let isEditing = false;
+
+    // Elements
+    const tableBody = document.getElementById('patients-table-body');
+    const emptyState = document.getElementById('table-empty-state');
+
+    // Modal & Form Elements
+    const patientModal = document.getElementById('patient-modal');
+    const patientForm = document.getElementById('patient-form');
+    const modalTitle = document.getElementById('modal-title');
+    const passwordContainer = document.getElementById('password-container');
+
+    const btnAddPatient = document.getElementById('btn-add-patient');
+    const btnCloseModal = document.getElementById('btn-close-modal');
+    const btnCancel = document.getElementById('btn-cancel');
+
+    // Inputs
+    const inputId = document.getElementById('patient-id');
+    const inputName = document.getElementById('p-name');
+    const inputEmail = document.getElementById('p-email');
+    const inputPassword = document.getElementById('p-password');
+    const inputPhone = document.getElementById('p-phone');
+    const inputAge = document.getElementById('p-age');
+    const inputGender = document.getElementById('p-gender');
+    const inputWeight = document.getElementById('p-weight');
+    const inputHeight = document.getElementById('p-height');
+
+    const inputHistory = document.getElementById('p-history');
+    const inputNotes = document.getElementById('p-notes');
+
+    // 1. Initial Load
+    document.addEventListener('DOMContentLoaded', renderPatientsList);
+
+    // 2. Render List Patients
+    async function renderPatientsList() {
+      try {
+        const users = await db.getUsers();
+        const patients = users.filter(u => u.role === 'patient');
+
+        if (patients.length === 0) {
+          tableBody.innerHTML = '';
+          emptyState.classList.remove('hidden');
+          return;
+        }
+
+        emptyState.classList.add('hidden');
+        tableBody.innerHTML = patients.map(p => `
+          <tr class="hover:bg-slate-50/50 transition">
+            <td class="py-3.5 px-5">
+              <div class="flex items-center gap-2.5">
+                <div class="h-8 w-8 rounded-full bg-sky-50 text-sky-600 font-semibold text-xs flex items-center justify-center border border-sky-100">
+                  ${p.full_name ? p.full_name[0].toUpperCase() : 'P'}
+                </div>
+                <span class="font-bold text-slate-900">${p.full_name || '-'}</span>
+              </div>
+            </td>
+            <td class="py-3.5 px-5 text-slate-500 font-medium">${p.email}</td>
+            <td class="py-3.5 px-5 text-center font-semibold text-slate-700">${p.age} thn</td>
+            <td class="py-3.5 px-5 text-slate-600 font-medium">+${p.whatsapp_number}</td>
+            <td class="py-3.5 px-5">
+              <p class="truncate max-w-xs text-slate-500" title="${p.medical_history || '-'}">${p.medical_history || '-'}</p>
+            </td>
+            <td class="py-3.5 px-5 text-right space-x-1.5">
+              <button onclick="editPatient('${p.id}')" class="bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200/50 px-2 py-1 rounded-md text-[10px] font-semibold transition inline-flex items-center gap-1">
+                <i data-lucide="edit-3" class="h-3 w-3"></i>
+                <span>Edit</span>
+              </button>
+              <button onclick="deletePatient('${p.id}')" class="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200/50 px-2 py-1 rounded-md text-[10px] font-semibold transition inline-flex items-center gap-1">
+                <i data-lucide="user-x" class="h-3 w-3"></i>
+                <span>Hapus</span>
+              </button>
+            </td>
+          </tr>
+        `).join('');
+
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+      } catch (err) {
+        console.error("Gagal memuat data pasien:", err);
+        showToast("Gagal memuat data pasien: " + err.message, "error");
+      }
+    }
+
+    // 3. Modal Actions (Show/Hide)
+    function openModal(editing = false) {
+      isEditing = editing;
+      patientModal.classList.remove('hidden');
+      const panel = patientModal.querySelector('.bg-white');
+      setTimeout(() => {
+        panel.classList.remove('scale-95', 'opacity-0');
+      }, 50);
+
+      if (editing) {
+        modalTitle.innerText = "Edit Profil Pasien";
+        passwordContainer.classList.add('hidden');
+        inputPassword.removeAttribute('required');
+      } else {
+        modalTitle.innerText = "Tambah Pasien Baru";
+        passwordContainer.classList.remove('hidden');
+        inputPassword.setAttribute('required', 'true');
+        patientForm.reset();
+        inputId.value = "";
+      }
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function closeModal() {
+      const panel = patientModal.querySelector('.bg-white');
+      panel.classList.add('scale-95', 'opacity-0');
+      setTimeout(() => {
+        patientModal.classList.add('hidden');
+      }, 250);
+    }
+
+    btnAddPatient.addEventListener('click', () => openModal(false));
+    btnCloseModal.addEventListener('click', closeModal);
+    btnCancel.addEventListener('click', closeModal);
+
+    // 4. Edit Patient Handler
+    window.editPatient = async function (id) {
+      try {
+        const users = await db.getUsers();
+        const patient = users.find(u => u.id === id);
+        if (!patient) return;
+
+        openModal(true);
+
+        // Pre-fill inputs
+        inputId.value = patient.id;
+        inputName.value = patient.full_name || '';
+        inputEmail.value = patient.email;
+        inputPhone.value = patient.whatsapp_number || '';
+        inputAge.value = patient.age || '';
+        inputGender.value = patient.gender || 'Laki-laki';
+        inputWeight.value = patient.weight_kg || '';
+        inputHeight.value = patient.height_cm || '';
+
+        inputHistory.value = patient.medical_history || '';
+        inputNotes.value = patient.notes || '';
+      } catch (err) {
+        console.error("Gagal memuat detail pasien:", err);
+        showToast("Gagal memuat detail pasien: " + err.message, "error");
+      }
+    };
+
+    // 5. Submit Form (Create / Update)
+    patientForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const id = inputId.value;
+      const name = inputName.value.trim();
+      const email = inputEmail.value.trim();
+      const password = inputPassword.value;
+      const phone = inputPhone.value.trim().replace('+', ''); // Strip leading + for whatsapp formatting
+      const age = parseInt(inputAge.value);
+      const gender = inputGender.value;
+      const weight = inputWeight.value ? parseFloat(inputWeight.value) : null;
+      const height = inputHeight.value ? parseInt(inputHeight.value) : null;
+      const history = inputHistory.value.trim();
+      const notes = inputNotes.value.trim();
+
+      try {
+        const users = await db.getUsers();
+
+        // Check email uniqueness
+        const emailExists = users.some(u => u.email && u.email.toLowerCase() === email.toLowerCase() && u.id !== id);
+        if (emailExists) {
+          showToast("Email sudah terdaftar oleh pengguna lain!", "error");
+          return;
+        }
+
+        if (isEditing) {
+          // Update Action
+          await db.updateUser(id, {
+            full_name: name,
+            email: email,
+            whatsapp_number: phone,
+            age: age,
+            gender: gender,
+            weight_kg: weight,
+            height_cm: height,
+            medical_history: history,
+            notes: notes
+          });
+          showToast("Data pasien berhasil diperbarui", "success");
+        } else {
+          // Create Action
+          await db.createUser(email, password || "pasien", {
+            full_name: name,
+            age: age,
+            gender: gender,
+            weight_kg: weight,
+            height_cm: height,
+            whatsapp_number: phone,
+            medical_history: history || "-",
+            notes: notes || "-"
+          });
+          showToast("Akun pasien baru berhasil ditambahkan", "success");
+        }
+
+        closeModal();
+        await renderPatientsList();
+      } catch (err) {
+        console.error("Gagal menyimpan data pasien:", err);
+        showToast("Gagal menyimpan data pasien: " + err.message, "error");
+      }
+    });
+
+    // 6. Delete Patient Handler
+    window.deletePatient = function (id) {
+      showConfirmModal({
+        title: "Hapus Akun Pasien?",
+        message: "Akun ini beserta profilnya akan dihapus permanen. Data pengukuran yang terkait dengan pasien ini tetap disimpan atau diarsipkan.",
+        onConfirm: async () => {
+          try {
+            await db.deleteUser(id);
+            showToast("Akun pasien berhasil dihapus", "success");
+            await renderPatientsList();
+          } catch (err) {
+            console.error("Gagal menghapus pasien:", err);
+            showToast("Gagal menghapus pasien: " + err.message, "error");
+          }
+        }
+      });
+    };
+  </script>
+</body>
+
+</html>

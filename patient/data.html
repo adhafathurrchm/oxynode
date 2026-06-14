@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Riwayat Pengukuran Saya - OxyNode</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="../assets/css/custom.css">
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+  <div class="space-y-6">
+
+    <!-- Filters Panel -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+      <div class="flex items-center gap-2 mb-4 border-b border-slate-100 pb-2.5">
+        <i data-lucide="calendar-range" class="h-4.5 w-4.5 text-sky-500"></i>
+        <h3 class="font-semibold text-slate-800 text-sm">Cari Berdasarkan Rentang Tanggal</h3>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <!-- Start Date -->
+        <div class="space-y-1">
+          <label for="filter-start-date" class="text-xs font-semibold text-slate-500">Tanggal Mulai</label>
+          <input type="date" id="filter-start-date" class="border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none w-full bg-slate-50">
+        </div>
+
+        <!-- End Date -->
+        <div class="space-y-1">
+          <label for="filter-end-date" class="text-xs font-semibold text-slate-500">Tanggal Selesai</label>
+          <input type="date" id="filter-end-date" class="border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none w-full bg-slate-50">
+        </div>
+
+        <!-- Action buttons -->
+        <div class="flex items-end gap-2">
+          <button id="btn-apply-filters" class="flex-grow bg-sky-500 hover:bg-sky-600 text-white rounded-lg py-2 px-4 text-xs font-semibold shadow-sm transition duration-150 flex items-center justify-center gap-1 h-[34px]">
+            <i data-lucide="search" class="h-4 w-4"></i>
+            <span>Terapkan</span>
+          </button>
+          <button id="btn-reset-filters" class="border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg p-2 text-xs font-medium transition h-[34px]" title="Reset filter">
+            <i data-lucide="rotate-ccw" class="h-4 w-4"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Data Table Card -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h3 class="font-bold text-slate-900 text-base">Log Kesehatan Anda</h3>
+          <p class="text-xs text-slate-500 mt-0.5">Riwayat lengkap data deteksi sensor Anda dari waktu ke waktu</p>
+        </div>
+        <div>
+          <!-- Export CSV button -->
+          <button id="btn-export-csv" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg px-3 py-2 text-xs font-semibold flex items-center gap-1.5 transition">
+            <i data-lucide="download" class="h-3.5 w-3.5"></i>
+            <span>Ekspor CSV</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Responsive Table Container -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50/70 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+              <th class="py-3 px-5">Waktu Pengukuran</th>
+              <th class="py-3 px-5 text-center">SpO2 (%)</th>
+              <th class="py-3 px-5 text-center">Detak Jantung (bpm)</th>
+              <th class="py-3 px-5">Status AI</th>
+              <th class="py-3 px-5">Analisis Medis Gemini AI</th>
+              <th class="py-3 px-5 text-right">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="measurements-table-body" class="divide-y divide-slate-150 text-xs text-slate-700">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty State -->
+      <div id="table-empty-state" class="hidden py-12 text-center text-slate-400 space-y-2">
+        <i data-lucide="folder-open" class="h-10 w-10 mx-auto text-slate-300"></i>
+        <p class="font-semibold text-sm">Tidak ada riwayat pengukuran ditemukan</p>
+        <p class="text-xs">Hubungi admin untuk melakukan pengukuran SpO2 & Nadi pertama Anda.</p>
+      </div>
+
+      <!-- Pagination Footer -->
+      <div class="p-4 border-t border-slate-100 flex items-center justify-between text-xs font-medium text-slate-500 bg-slate-50/30">
+        <span id="pagination-info">Menampilkan 1-10 dari 100 data</span>
+        <div class="flex items-center gap-2">
+          <button id="btn-prev-page" class="border border-slate-200 bg-white hover:bg-slate-50 rounded-lg px-3 py-1.5 transition disabled:opacity-50 disabled:pointer-events-none flex items-center gap-1">
+            <i data-lucide="chevron-left" class="h-3.5 w-3.5"></i>
+            <span>Sebelumnya</span>
+          </button>
+          <button id="btn-next-page" class="border border-slate-200 bg-white hover:bg-slate-50 rounded-lg px-3 py-1.5 transition disabled:opacity-50 disabled:pointer-events-none flex items-center gap-1">
+            <span>Selanjutnya</span>
+            <i data-lucide="chevron-right" class="h-3.5 w-3.5"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- WhatsApp Confirmation Modal -->
+  <div id="wa-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm hidden animate-fade-in">
+    <div class="bg-white rounded-2xl shadow-xl p-6 max-w-lg w-full border border-slate-100 transform scale-95 opacity-0 transition duration-300">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+        <div class="flex items-center gap-2 text-emerald-600">
+          <i data-lucide="message-square" class="h-5 w-5"></i>
+          <h3 class="font-bold text-slate-900 text-base">Kirim Laporan Ke WhatsApp Anda</h3>
+        </div>
+        <button id="btn-close-wa-modal" class="text-slate-400 hover:text-slate-600 transition">
+          <i data-lucide="x" class="h-5 w-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs">
+          <div>
+            <span class="text-slate-500 block">Kirim ke WhatsApp Anda:</span>
+            <span id="modal-wa-number" class="font-bold text-slate-800">-</span>
+          </div>
+        </div>
+
+        <div class="space-y-1.5">
+          <label for="modal-wa-message" class="text-xs font-semibold text-slate-600">Pratinjau Pesan Laporan:</label>
+          <textarea id="modal-wa-message" rows="8" class="w-full border border-slate-300 rounded-lg p-3 text-xs focus:ring-2 focus:ring-sky-500 outline-none bg-slate-50/50 font-mono text-slate-700 leading-relaxed"></textarea>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 mt-6 border-t border-slate-100 pt-4">
+        <button id="btn-cancel-wa" class="border border-slate-200 text-slate-700 hover:bg-slate-50 px-4 py-2 rounded-lg text-xs font-semibold transition">
+          Batal
+        </button>
+        <button id="btn-send-wa-submit" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow-sm transition flex items-center gap-1.5">
+          <i data-lucide="send" class="h-3.5 w-3.5"></i>
+          <span>Kirim Laporan</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Central utilities -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/config.js"></script>
+  <script src="../assets/js/common.js"></script>
+  <script>
+    // State
+    let patientId = "";
+    let currentPage = 1;
+    const itemsPerPage = 8;
+    let filteredMeasurements = [];
+    let selectedMeasureForWa = null;
+
+    // Elements
+    const tableBody = document.getElementById('measurements-table-body');
+    const emptyState = document.getElementById('table-empty-state');
+    const filterStartDate = document.getElementById('filter-start-date');
+    const filterEndDate = document.getElementById('filter-end-date');
+    const btnApplyFilters = document.getElementById('btn-apply-filters');
+    const btnResetFilters = document.getElementById('btn-reset-filters');
+    const paginationInfo = document.getElementById('pagination-info');
+    const btnPrevPage = document.getElementById('btn-prev-page');
+    const btnNextPage = document.getElementById('btn-next-page');
+
+    // WA Modal Elements
+    const waModal = document.getElementById('wa-modal');
+    const btnCloseWaModal = document.getElementById('btn-close-wa-modal');
+    const modalWaNumber = document.getElementById('modal-wa-number');
+    const modalWaMessage = document.getElementById('modal-wa-message');
+    const btnCancelWa = document.getElementById('btn-cancel-wa');
+    const btnSendWaSubmit = document.getElementById('btn-send-wa-submit');
+
+    // 1. Initial Load
+    document.addEventListener('DOMContentLoaded', async () => {
+      const currentUser = getCurrentUser();
+      if (!currentUser) return;
+      patientId = currentUser.id;
+      await applyFilters();
+    });
+
+    // 2. Filter Logic (Self Only)
+    async function applyFilters() {
+      try {
+        const startDate = filterStartDate.value ? new Date(filterStartDate.value + 'T00:00:00') : null;
+        const endDate = filterEndDate.value ? new Date(filterEndDate.value + 'T23:59:59') : null;
+
+        const allMeasurements = await db.getMeasurements();
+        
+        // Filter measurements for self and date range
+        filteredMeasurements = allMeasurements.filter(m => {
+          if (m.patient_id !== patientId) return false;
+          
+          const measureDate = new Date(m.created_at);
+          if (startDate && measureDate < startDate) return false;
+          if (endDate && measureDate > endDate) return false;
+          
+          return true;
+        });
+
+        // Sort by newest first
+        filteredMeasurements.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+        currentPage = 1;
+        renderTable();
+      } catch (err) {
+        console.error("Gagal memuat riwayat pengukuran:", err);
+        showToast("Gagal memuat riwayat pengukuran: " + err.message, "error");
+      }
+    }
+
+    btnApplyFilters.addEventListener('click', async () => {
+      await applyFilters();
+      showToast("Filter riwayat diterapkan", "info");
+    });
+
+    btnResetFilters.addEventListener('click', async () => {
+      filterStartDate.value = '';
+      filterEndDate.value = '';
+      await applyFilters();
+      showToast("Filter direset", "info");
+    });
+
+    // 3. Render Table Content
+    function renderTable() {
+      const totalItems = filteredMeasurements.length;
+      const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+
+      if (currentPage > totalPages) currentPage = totalPages;
+      if (currentPage < 1) currentPage = 1;
+
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+
+      const displayItems = filteredMeasurements.slice(startIndex, endIndex);
+
+      if (totalItems === 0) {
+        tableBody.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        paginationInfo.innerText = "Menampilkan 0 data";
+        btnPrevPage.disabled = true;
+        btnNextPage.disabled = true;
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+
+      tableBody.innerHTML = displayItems.map(m => {
+        const timeStr = new Date(m.created_at).toLocaleString('id-ID', {
+          day: '2-digit', month: 'short', year: 'numeric',
+          hour: '2-digit', minute: '2-digit'
+        });
+
+        // Status styling for SpO2
+        let spo2Class = 'text-emerald-600 font-bold';
+        if (m.spo2 < 92) spo2Class = 'text-red-600 font-bold';
+        else if (m.spo2 < 95) spo2Class = 'text-amber-500 font-bold';
+
+        // Status styling for HR
+        let hrClass = 'text-emerald-600 font-bold';
+        if (m.heart_rate < 50 || m.heart_rate >= 110) hrClass = 'text-red-600 font-bold';
+        else if ((m.heart_rate >= 101 && m.heart_rate <= 109) || (m.heart_rate >= 50 && m.heart_rate < 60)) hrClass = 'text-amber-500 font-bold';
+
+        // AI badge styling
+        let aiBadge = `<span class="bg-slate-100 text-slate-400 text-[10px] font-semibold px-2 py-0.5 rounded-full border border-slate-200">Belum Ada</span>`;
+        if (m.ai_result) {
+          let aiStatusClass = 'bg-emerald-50 text-emerald-700 border-emerald-100';
+          if (m.ai_status === 'warning') aiStatusClass = 'bg-amber-50 text-amber-700 border-amber-100';
+          else if (m.ai_status === 'critical') aiStatusClass = 'bg-red-50 text-red-700 border-red-100';
+          aiBadge = `<span class="${aiStatusClass} text-[10px] font-bold px-2.5 py-0.5 rounded-full border">${m.ai_status.toUpperCase()}</span>`;
+        }
+
+        const aiPreview = m.ai_result ? 
+          `<p class="truncate max-w-sm font-medium text-slate-500" title="${m.ai_result}">${m.ai_result}</p>` : 
+          `<span class="text-slate-400 italic text-[11px]">Menunggu analisis dokter</span>`;
+
+        return `
+          <tr class="hover:bg-slate-50/50 transition">
+            <td class="py-3 px-5 font-semibold text-slate-600">${timeStr}</td>
+            <td class="py-3 px-5 text-center ${spo2Class}">${m.spo2}%</td>
+            <td class="py-3 px-5 text-center ${hrClass}">${m.heart_rate} bpm</td>
+            <td class="py-3 px-5">${aiBadge}</td>
+            <td class="py-3 px-5 text-slate-600">${aiPreview}</td>
+            <td class="py-3 px-5 text-right">
+              <button onclick="openWaModal('${m.id}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/50 px-2.5 py-1 rounded-md text-[10px] font-semibold transition inline-flex items-center gap-1">
+                <i data-lucide="message-square" class="h-3 w-3"></i>
+                <span>Kirim WA</span>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+
+      paginationInfo.innerText = `Menampilkan ${startIndex + 1}-${endIndex} dari ${totalItems} data`;
+      btnPrevPage.disabled = currentPage === 1;
+      btnNextPage.disabled = currentPage === totalPages;
+    }
+
+    // Pagination Click
+    btnPrevPage.addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderTable();
+      }
+    });
+
+    btnNextPage.addEventListener('click', () => {
+      const totalPages = Math.ceil(filteredMeasurements.length / itemsPerPage);
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderTable();
+      }
+    });
+
+    // 4. Open WhatsApp Dialog
+    window.openWaModal = async function(id) {
+      try {
+        const measurements = await db.getMeasurements();
+        const measure = measurements.find(m => m.id === id);
+        if (!measure) return;
+
+        const currentUser = getCurrentUser();
+        selectedMeasureForWa = measure;
+
+        modalWaNumber.innerText = currentUser.whatsapp_number || "Belum diatur di profil";
+
+        let timeStr = new Date(measure.created_at).toLocaleString('id-ID', {
+          day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+
+        let statusLabel = 'Normal';
+        if (measure.spo2 < 92) statusLabel = 'Kritis (Rendah)';
+        else if (measure.spo2 < 95) statusLabel = 'Warning (Perlu Perhatian)';
+
+        let messageText = `[OxyNode] LAPORAN PEMERIKSAAN KESEHATAN SAYA
+
+Nama   : ${currentUser.full_name || '-'}
+Waktu  : ${timeStr}
+SpO2   : ${measure.spo2}%
+Nadi   : ${measure.heart_rate} bpm
+Status : ${statusLabel}
+
+----------------------------------------
+Analisis Medis AI (Gemini):
+${measure.ai_result ? measure.ai_result : 'Menunggu hasil analisis dokter.'}
+`;
+
+        modalWaMessage.value = messageText;
+
+        // Move to body to escape transform container positioning context
+        document.body.appendChild(waModal);
+        waModal.classList.remove('hidden');
+        const panel = waModal.querySelector('.bg-white');
+        setTimeout(() => {
+          panel.classList.remove('scale-95', 'opacity-0');
+        }, 50);
+      } catch (err) {
+        console.error("Gagal memuat detail data untuk WhatsApp:", err);
+        showToast("Gagal memuat detail data: " + err.message, "error");
+      }
+    };
+
+    function closeWaModal() {
+      const panel = waModal.querySelector('.bg-white');
+      panel.classList.add('scale-95', 'opacity-0');
+      setTimeout(() => {
+        waModal.classList.add('hidden');
+      }, 250);
+    }
+
+    btnCloseWaModal.addEventListener('click', closeWaModal);
+    btnCancelWa.addEventListener('click', closeWaModal);
+
+    // Fonnte Trigger Submit
+    btnSendWaSubmit.addEventListener('click', () => {
+      const currentUser = getCurrentUser();
+      
+      if (!currentUser.whatsapp_number) {
+        showToast("Atur nomor WhatsApp Anda di halaman Profil terlebih dahulu!", "error");
+        return;
+      }
+
+      const phone = currentUser.whatsapp_number;
+      const text = modalWaMessage.value;
+
+      btnSendWaSubmit.disabled = true;
+      btnSendWaSubmit.innerHTML = `
+        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>Mengirim...</span>
+      `;
+
+      fetch('https://api.fonnte.com/send', {
+        method: 'POST',
+        headers: {
+          'Authorization': FONNTE_CONFIG.token
+        },
+        body: new URLSearchParams({
+          target: phone,
+          message: text
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        btnSendWaSubmit.disabled = false;
+        btnSendWaSubmit.innerHTML = `
+          <i data-lucide="send" class="h-3.5 w-3.5"></i>
+          <span>Kirim Laporan</span>
+        `;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        if (data.status) {
+          showToast(`Laporan terkirim ke WhatsApp Anda (+${phone}) via WhatsApp!`, "success");
+          closeWaModal();
+        } else {
+          showToast(`Gagal mengirim via Fonnte: ${data.reason || 'Unknown error'}`, "error");
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        btnSendWaSubmit.disabled = false;
+        btnSendWaSubmit.innerHTML = `
+          <i data-lucide="send" class="h-3.5 w-3.5"></i>
+          <span>Kirim Laporan</span>
+        `;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+        showToast("Gagal menghubungi server Fonnte", "error");
+      });
+    });
+
+    // Export to CSV Function
+    document.getElementById('btn-export-csv').addEventListener('click', async () => {
+      try {
+        const measurements = await db.getMeasurements();
+        const patientMeasures = measurements
+          .filter(m => m.patient_id === patientId)
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+        if (patientMeasures.length === 0) {
+          showToast("Tidak ada data untuk diekspor!", "warning");
+          return;
+        }
+
+        // CSV Headers
+        let csvContent = "Waktu Pengukuran,SpO2 (%),Detak Jantung (bpm),Status AI,Analisis AI\n";
+        
+        patientMeasures.forEach(m => {
+          const timeStr = new Date(m.created_at).toLocaleString('id-ID', {
+            day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit'
+          }).replace(/\//g, '-');
+          
+          let aiStatus = m.ai_status || "Belum dianalisis";
+          let aiResult = m.ai_result ? m.ai_result.replace(/"/g, '""').replace(/\n/g, ' ') : "-";
+          
+          csvContent += `"${timeStr}","${m.spo2}","${m.heart_rate}","${aiStatus}","${aiResult}"\n`;
+        });
+        
+        // Create download link with BOM for UTF-8 compatibility
+        const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `riwayat_oxynode_saya_${new Date().toISOString().slice(0,10)}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showToast("File CSV berhasil diunduh!", "success");
+      } catch (err) {
+        showToast("Gagal mengekspor CSV: " + err.message, "error");
+      }
+    });
+  </script>
+</body>
+</html>
